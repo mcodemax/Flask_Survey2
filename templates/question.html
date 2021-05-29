@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %} {{question}} {% endblock %}
+
+{% block content %} 
+<p>{{instructions}}</p>
+
+<form action="/questions/{% if (q_num + 1) > (question_list_len - 1) %}thank_you{% endif %}{% if (q_num + 1) <= (question_list_len - 1) %}{{q_num + 1}}{% endif %}">
+    <input type="submit" value="Next" />
+</form>
+
+{% endblock %}
+
+
