@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %} {{title}} {% endblock %}
+
+{% block content %} 
+<p>{{instructions}}</p>
+
+<form action="/questions/0">
+    <input type="submit" value="Go to form" />
+</form>
+
+{% endblock %}

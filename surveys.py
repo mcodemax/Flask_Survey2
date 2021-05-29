@@ -4,7 +4,7 @@ class Question:
     def __init__(self, question, choices=None, allow_text=False):
         """Create question (assume Yes/No for choices."""
 
-        if not choices:
+        if not choices: #not None =True; b/c of truthiness
             choices = ["Yes", "No"]
 
         self.question = question
