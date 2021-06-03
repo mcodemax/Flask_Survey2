@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, flash
+from flask import Flask, session, request, render_template, redirect, flash
 from flask_debugtoolbar import DebugToolbarExtension
 import surveys
 from surveys import surveys, satisfaction_survey, personality_quiz
@@ -6,23 +6,28 @@ from surveys import surveys, satisfaction_survey, personality_quiz
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = "maxcode"
+app.config["SECRET_KEY"] = "maxcode"
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 debug = DebugToolbarExtension(app)
 
-responses = []
 
 @app.route('/')
-def show_title():
+def show_title_get():
     """ render a page that shows the user the title of the survey, 
     the instructions, and a button to start the survey."""
-    responses.clear()
-    #empty the responses array in case survey is partially filled then someone goes back
-
+    
     title = satisfaction_survey.title
     instructions = satisfaction_survey.instructions    
 
     return render_template("start.html", title=title, instructions=instructions)
+
+@app.route('/startsurvey',methods=["POST"])
+def start_survey_store_res():
+
+    session["responses"] = []
+
+    return redirect("/questions/0")
+
 
 
 @app.route('/questions/<int:q_num>', methods=["GET"])
@@ -32,14 +37,14 @@ def show_question(q_num):
     """
     
     # if length of responses = length of question redirect to TY
-    if len(responses) == len(satisfaction_survey.questions):
+    if len(session["responses"]) == len(satisfaction_survey.questions):
         flash("Redirected; You finished the survey")
         return redirect("/thank_you")
 
     #if user tries to manually take survey out of order or redo q's redirect them
-    if q_num != len(responses):
+    if q_num != len(session["responses"]):
         flash("Redirected; you tried to access an invalid question")
-        return redirect("/questions/"+str(len(responses)))
+        return redirect("/questions/"+str(len(session["responses"])))
 
 
         
@@ -48,7 +53,7 @@ def show_question(q_num):
 
 
     return render_template("question.html",
-    question=question, q_num=q_num, choices=choices, debug=responses)
+    question=question, q_num=q_num, choices=choices, debug=session["responses"])
 
 
  
@@ -72,7 +77,10 @@ def show_question_diff(q_num):
     if answer == None:
         return redirect("/questions/"+str(q_num - 1))
 
-    responses.append(answer)
+    session_responses = session["responses"]
+    session_responses.append(answer)
+    session["responses"] = session_responses
+    # https://stackoverflow.com/questions/34630709/how-to-add-more-than-item-to-the-session-in-flask/47862714
 
     if q_num > question_list_len - 1:
         return redirect("/thank_you")
@@ -84,4 +92,4 @@ def show_question_diff(q_num):
 def thank_you():
     """
     """
-    return render_template("thank_you.html", debug=responses)
+    return render_template("thank_you.html", debug=session["responses"])
